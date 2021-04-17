@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { UserContext } from "../providers/UserProvider";
 import firebase, { auth, firestore } from "../firebase";
+import '../styles/index.sass'
 
 const MainPage = () => {
   const user = useContext(UserContext);
@@ -8,29 +9,37 @@ const MainPage = () => {
   const [chat, setChat] = useState(false);
   const [roomID, setRoomID] = useState('');
   const [message, setMessage] = useState('');
+  const [roomName, setRoomName] = useState('');
+  const [msgs, setMsgs] = useState([]);
 
   const updateChat = (rID) => {
 
     let roomHistory = firestore.collection("chatrooms").doc(rID).collection('messages').orderBy('timestamp');
     let unsubscribe = roomHistory.onSnapshot(function (snapshot) {
       snapshot.docChanges().forEach(function (change) {
-        console.log('yes');
         var message = change.doc.data();
         if (message.timestamp !== null && message.timestamp) {
           displayMessage(message.timestamp, message.name, message.text);
         }
         if (message.timestamp === null && message.text === 'exit') {
-          console.log('please');
           unsubscribe();
         }
       });
     });
+    firestore.collection("chatrooms").doc(rID).get().then(
+      doc => {
+        setRoomName(doc.data().name);
+      }
+    )
   }
 
   function getUserName() {
     return auth.currentUser.displayName;
   }
 
+  async function getRoomName() {
+    return await firestore.collection('chatrooms').doc(roomID).data().name;
+  }
   function getUserEmail() {
     return auth.currentUser.email;
   }
@@ -50,6 +59,7 @@ const MainPage = () => {
       id: getUserEmail()
     }
     )
+    document.getElementById('message').value = '';
   }
 
   function displayMessage(time, name, text) {
@@ -61,6 +71,24 @@ const MainPage = () => {
   function enterRoom() {
     updateChat(roomID);
     setChat(true);
+  }
+
+  function createRoom() {
+    firestore.collection('chatrooms').add({
+      name: getUserName() + "'s room"
+    }).then(async ref => {
+      console.log(ref.id);
+      setRoomID(ref.id);
+      await firestore.collection('chatrooms').doc(ref.id).collection('messages').add(
+        {
+          name: getUserName(),
+          text: 'created room',
+          timestamp: null,
+          id: getUserEmail()
+        }
+      )
+    }
+    )
   }
 
   async function leaveRoom() {
@@ -79,11 +107,12 @@ const MainPage = () => {
   }
   return (
     chat ?
-      <div className="">
-        <title id='textBoxTitle'></title>
+      <div className="base">
+        <h1 id='textBoxTitle'>{roomName} id: {roomID}</h1>
         <div id="textBox">
 
         </div>
+
         <input
           type="string"
           value={message}
@@ -94,14 +123,15 @@ const MainPage = () => {
         <button onClick={sendMessage}>Send</button>
         <button onClick={leaveRoom}>Leave Room</button>
       </div>
-      : <div>
-        <div >
+      : <div className="base">
+        <div>
+          <h1 className="pageName">
+            Profile Page
+          </h1>
 
-          <div>
-            <h2>{displayName}</h2>
-            <h3>{email}</h3>
-          </div>
-          <button onClick={() => { auth.signOut() }}>Sign out</button>
+          <h2>{displayName} <button>Edit</button></h2>
+
+          <h3>{email}</h3>
         </div>
         <div className="">
           <input
@@ -113,7 +143,8 @@ const MainPage = () => {
           />
           <button onClick={enterRoom}>Enter Room</button>
         </div>
-
+        <button onClick={createRoom}> Create Room</button>
+        <button onClick={() => { auth.signOut() }}>Sign out</button>
 
       </div>
   )

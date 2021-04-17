@@ -2,9 +2,15 @@ import React, { useState } from "react";
 import { Link } from "@reach/router";
 import { signInWithGoogle, auth } from '../firebase';
 
-async function createUser(e, p) {
-  await auth.createUserWithEmailAndPassword(e, p);
-  console.log('done');
+function createUser(e, p, n) {
+  auth.createUserWithEmailAndPassword(e, p).then(
+    function (result) {
+      return result.user.updateProfile({
+        displayName: n
+      })
+    }).catch(err => {
+      alert(err.message);
+    });
 }
 
 function SignUp() {
@@ -14,13 +20,14 @@ function SignUp() {
   const createUserWithEmailAndPasswordHandler = (event, email, password) => {
     event.preventDefault();
     try {
-      createUser(email, password);
+      createUser(email, password, displayName);
+      setEmail("");
+      setPassword("");
+      setDisplayName("");
     } catch (err) {
       console.log(err.message);
     }
-    setEmail("");
-    setPassword("");
-    setDisplayName("");
+
   };
   const onChangeHandler = event => {
     const { name, value } = event.currentTarget;
@@ -33,14 +40,15 @@ function SignUp() {
     }
   };
   return (
-    <div>
+    <div className="base">
       <h1>Sign Up</h1>
       <div>
-        <form>
-          <label>
+        <form className="signForm" style={{ justifyContent: "space-between" }}>
+          <label className="formLabel">
             Display Name:
           </label>
           <input
+            className="formInput"
             type="text"
             name="displayName"
             value={displayName}
@@ -48,10 +56,11 @@ function SignUp() {
             id="displayName"
             onChange={event => onChangeHandler(event)}
           />
-          <label>
+          <label className="formLabel">
             Email:
           </label>
           <input
+            className="formInput"
             type="email"
             name="userEmail"
             value={email}
@@ -59,10 +68,11 @@ function SignUp() {
             id="userEmail"
             onChange={event => onChangeHandler(event)}
           />
-          <label>
+          <label className="formLabel">
             Password:
           </label>
           <input
+            className="formInput"
             type="password"
             name="userPassword"
             value={password}

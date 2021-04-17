@@ -27,14 +27,15 @@ const SignIn = () => {
   };
 
   return (
-    <div>
+    <div className="base">
       <h1>Sign In</h1>
       <div>
-        <form className="">
-          <label htmlFor="userEmail" className="block">
+        <form className="signForm" style={{ justifyContent: "space-between" }}>
+          <label htmlFor="userEmail" className="formLabel">
             Email:
           </label>
           <input
+            className="formInput"
             type="email"
             name="userEmail"
             value={email}
@@ -42,10 +43,11 @@ const SignIn = () => {
             id="userEmail"
             onChange={(event) => onChangeHandler(event)}
           />
-          <label htmlFor="userPassword" className="block">
+          <label htmlFor="userPassword" className="formLabel">
             Password:
           </label>
           <input
+            className="formInput"
             type="password"
             name="userPassword"
             value={password}
