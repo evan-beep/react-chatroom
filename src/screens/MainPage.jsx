@@ -2,6 +2,8 @@ import React, { useContext, useState } from "react";
 import { UserContext } from "../providers/UserProvider";
 import firebase, { auth, firestore } from "../firebase";
 import '../styles/index.sass'
+import ReactDOMServer from 'react-dom/server';
+import icon from '../person.png';
 
 const MainPage = () => {
   const user = useContext(UserContext);
@@ -10,7 +12,6 @@ const MainPage = () => {
   const [roomID, setRoomID] = useState('');
   const [message, setMessage] = useState('');
   const [roomName, setRoomName] = useState('');
-  const [msgs, setMsgs] = useState([]);
 
   const updateChat = (rID) => {
 
@@ -19,7 +20,9 @@ const MainPage = () => {
       snapshot.docChanges().forEach(function (change) {
         var message = change.doc.data();
         if (message.timestamp !== null && message.timestamp) {
-          displayMessage(message.timestamp, message.name, message.text);
+          displayMessage(message);
+          var objDiv = document.getElementById("textBox");
+          objDiv.scrollTop = objDiv.scrollHeight;
         }
         if (message.timestamp === null && message.text === 'exit') {
           unsubscribe();
@@ -37,35 +40,61 @@ const MainPage = () => {
     return auth.currentUser.displayName;
   }
 
-  async function getRoomName() {
-    return await firestore.collection('chatrooms').doc(roomID).data().name;
-  }
   function getUserEmail() {
     return auth.currentUser.email;
   }
-  function htmlEnc(s) {
-    return s.replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/'/g, '&#39;')
-      .replace(/"/g, '&#34;');
+
+  function getUserProfileImg() {
+    return auth.currentUser.photoURL;
   }
 
   function sendMessage() {
     firestore.collection('chatrooms').doc(roomID).collection('messages').add({
       name: getUserName(),
-      text: htmlEnc(message),
+      text: message,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      id: getUserEmail()
+      id: getUserEmail(),
+      ImgSrc: getUserProfileImg()
     }
     )
     document.getElementById('message').value = '';
   }
 
-  function displayMessage(time, name, text) {
-    let msg = document.createElement('div');
-    msg.innerHTML = time.toDate().toString() + name + text;
-    document.getElementById('textBox').appendChild(msg);
+
+  function displayMessage(m) {
+    let s = document.createElement('div');
+    s.innerHTML = ReactDOMServer.renderToString(buildMsgBox(m));
+    document.getElementById('textBox').appendChild(s);
+  }
+
+  function buildMsgBox(item) {
+    return (
+      item.id === getUserEmail() ?
+        <div className="msgBox" style={{ justifyContent: 'flex-end' }}>
+
+
+          <div className="msgText">
+            <div className="profileName">{item.name}</div>
+            <div className="msg">{item.text}</div>
+          </div>
+          <div className="profilePic">
+            <img src={item.ImgSrc ? item.ImgSrc : icon} alt={item.name + "profpic"} className="profPic" />
+          </div>
+
+        </div>
+        :
+        <div className="msgBox" >
+
+          <div className="profilePic">
+            <img src={item.ImgSrc ? item.ImgSrc : icon} alt={item.name + "profpic"} className="profPic" />
+          </div>
+          <div className="msgText">
+            <div className="profileName">{item.name}</div>
+            <div className="msg" style={{ backgroundColor: '#a17100' }}>{item.text}</div>
+          </div>
+
+        </div>
+    )
   }
 
   function enterRoom() {
@@ -84,7 +113,7 @@ const MainPage = () => {
           name: getUserName(),
           text: 'created room',
           timestamp: null,
-          id: getUserEmail()
+          id: getUserEmail(),
         }
       )
     }
@@ -108,8 +137,8 @@ const MainPage = () => {
   return (
     chat ?
       <div className="base">
-        <h1 id='textBoxTitle'>{roomName} id: {roomID}</h1>
-        <div id="textBox">
+        <h1 id='textBoxTitle'>{roomName}</h1>
+        <div className="textBox" id="textBox">
 
         </div>
 
@@ -118,6 +147,7 @@ const MainPage = () => {
           value={message}
           placeholder="Enter Message"
           id="message"
+          className="inputZone"
           onChange={(event) => setMessage(event.currentTarget.value)}
         />
         <button onClick={sendMessage}>Send</button>
@@ -125,12 +155,7 @@ const MainPage = () => {
       </div>
       : <div className="base">
         <div>
-          <h1 className="pageName">
-            Profile Page
-          </h1>
-
           <h2>{displayName} <button>Edit</button></h2>
-
           <h3>{email}</h3>
         </div>
         <div className="">
