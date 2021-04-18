@@ -75,7 +75,7 @@ const MainPage = () => {
 
           <div className="msgText">
             <div className="profileName">{item.name}</div>
-            <div className="msg">{item.text}</div>
+            <div className="msg" style={{ backgroundColor: '#a17100' }}>{item.text}</div>
           </div>
           <div className="profilePic">
             <img src={item.ImgSrc ? item.ImgSrc : icon} alt={item.name + "profpic"} className="profPic" />
@@ -90,7 +90,7 @@ const MainPage = () => {
           </div>
           <div className="msgText">
             <div className="profileName">{item.name}</div>
-            <div className="msg" style={{ backgroundColor: '#a17100' }}>{item.text}</div>
+            <div className="msg" >{item.text}</div>
           </div>
 
         </div>
@@ -134,28 +134,45 @@ const MainPage = () => {
     setRoomID('');
     setChat(false);
   }
+
+  function changeName() {
+
+  }
+
+  async function copyRoomID() {
+    await navigator.clipboard.writeText(roomID);
+  }
+
   return (
     chat ?
       <div className="base">
-        <h1 id='textBoxTitle'>{roomName}</h1>
+        <div className='textBoxTitle'>
+          <button className='textBoxTitleButton' onClick={leaveRoom}>Leave Room</button>
+          <div className='textBoxTitleText'>{roomName}</div>
+          {navigator.clipboard
+            ? <button className="copyButton" onClick={copyRoomID}>Copy room ID</button>
+            : <div ></div>}
+        </div>
         <div className="textBox" id="textBox">
 
         </div>
+        <div className="inputZone">
+          <input
+            type="string"
+            value={message}
+            placeholder="Enter Message"
+            id="message"
+            className="inputBar"
+            onChange={(event) => setMessage(event.currentTarget.value)}
+          />
+          <button onClick={sendMessage} className="inputButton">Send</button>
+        </div>
 
-        <input
-          type="string"
-          value={message}
-          placeholder="Enter Message"
-          id="message"
-          className="inputZone"
-          onChange={(event) => setMessage(event.currentTarget.value)}
-        />
-        <button onClick={sendMessage}>Send</button>
-        <button onClick={leaveRoom}>Leave Room</button>
+
       </div>
       : <div className="base">
         <div>
-          <h2>{displayName} <button>Edit</button></h2>
+          <h2>{displayName} <button onClick={changeName()}>Edit</button></h2>
           <h3>{email}</h3>
         </div>
         <div className="">
