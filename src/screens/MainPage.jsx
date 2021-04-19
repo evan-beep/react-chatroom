@@ -1,19 +1,23 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { UserContext } from "../providers/UserProvider";
-import firebase, { auth, firestore } from "../firebase";
+import firebase, { auth, database, firestore } from "../firebase";
 import '../styles/index.sass'
 import ReactDOMServer from 'react-dom/server';
 import icon from '../images/person.png';
 import backIcon from '../images/backArrow.png'
 import copy from '../images/copy.png'
+import bell from '../images/bell.png'
 
 const MainPage = () => {
   const user = useContext(UserContext);
-  const { photoURL, displayName, email } = user;
+  const { displayName, email } = user;
   const [chat, setChat] = useState(false);
   const [roomID, setRoomID] = useState('');
   const [message, setMessage] = useState('');
   const [roomName, setRoomName] = useState('');
+  const [recRooms, setRecRooms] = useState([]);
+
+  const d = new Date()
 
   const updateChat = (rID) => {
 
@@ -25,6 +29,10 @@ const MainPage = () => {
           displayMessage(message);
           var objDiv = document.getElementById("textBox");
           objDiv.scrollTop = objDiv.scrollHeight;
+          if (message.timestamp.seconds > d.getTime() / 1000 && message.name !== getUserName()) {
+            let n = new Notification(message.name + ": " + message.text);
+          }
+
         }
         if (message.timestamp === null && message.text === 'exit') {
           unsubscribe();
@@ -105,6 +113,17 @@ const MainPage = () => {
       return;
     }
     updateChat(roomID);
+    setRecentRooms();
+    setChat(true);
+  }
+
+  function cheapEnterRoom(id) {
+    if (id === '') {
+      alert("Please enter room ID");
+      return;
+    }
+    updateChat(id);
+    cheapSetRecentRooms(id);
     setChat(true);
   }
 
@@ -161,6 +180,107 @@ const MainPage = () => {
     )
   }
 
+  function setRecentRooms() {
+    let obj = database.ref().child('users').child(auth.currentUser.uid)
+    obj.get().then(
+      (ss) => {
+        if (ss.val() !== null) {
+          console.log(ss.val());
+
+          let idss = ss.val().ids;
+          for (var i = idss.length - 1; i >= 0; i--) {
+            if (idss[i] === roomID) {
+              idss.splice(i, 1);
+            }
+          }
+          idss.push(roomID);
+          obj.set({
+            ids: idss
+          })
+          setRecRooms(idss);
+
+        } else {
+          console.log('data empty');
+          obj.set(
+            {
+              ids: [roomID]
+            }
+          )
+          setRecRooms([roomID]);
+        }
+      }
+    ).catch((err) => {
+      alert(err.message);
+    })
+  }
+
+  function cheapSetRecentRooms(id) {
+    let obj = database.ref().child('users').child(auth.currentUser.uid)
+    obj.get().then(
+      (ss) => {
+        if (ss.val() !== null) {
+          console.log(ss.val());
+
+          let idss = ss.val().ids;
+          for (var i = idss.length - 1; i >= 0; i--) {
+            if (idss[i] === id) {
+              idss.splice(i, 1);
+            }
+          }
+          idss.push(id);
+          obj.set({
+            ids: idss
+          })
+          setRecRooms(idss);
+
+        } else {
+          console.log('data empty');
+          obj.set(
+            {
+              ids: [id]
+            }
+          )
+          setRecRooms([id]);
+        }
+      }
+    ).catch((err) => {
+      alert(err.message);
+    })
+  }
+
+  async function getRecentRooms() {
+    let obj = database.ref().child('users').child(auth.currentUser.uid)
+    await obj.get().then(
+      (ss) => {
+        if (ss.val() !== null) {
+          setRecRooms(ss.val().ids)
+        } else {
+          setRecRooms([]);
+        }
+      }
+    )
+  }
+
+  function RecRoomBox(i, index) {
+    return (
+      <div onClick={() => {
+        setRoomID(i);
+        cheapEnterRoom(i);
+      }} className="recentRoom pseudoButton" key={i}>
+        {i}
+      </div>
+    )
+  }
+
+  useEffect(() => {
+    getRecentRooms();
+  }, [])
+
+  function handleNotiPermission() {
+    Promise.resolve(Notification.requestPermission()).then(function (permission) {
+      console.log(permission);
+    });
+  }
   return (
     chat ?
       <div className="base">
@@ -172,7 +292,6 @@ const MainPage = () => {
             : <div ></div>} <div id="copyTXT" className="titleCopyText">(Copy Room ID to share!)</div>
         </div>
         <div className="textBox" id="textBox">
-
         </div>
         <div className="inputZone">
           <input
@@ -188,8 +307,18 @@ const MainPage = () => {
 
 
       </div>
-      : <div className="base">
-
+      :
+      <div className="base">
+        <InfoCard />
+        <h2>Recent Rooms <img className="bellIMG" onClick={handleNotiPermission} src={bell} alt="notifications" /></h2>
+        <div className="recentBox">
+          {recRooms[0]
+            ? recRooms.map((i, index) => {
+              return RecRoomBox(recRooms[recRooms.length - index - 1], index)
+            })
+            : <p>You have no recent rooms</p>
+          }
+        </div>
         <div className="">
           <input
             type="string"
@@ -202,7 +331,7 @@ const MainPage = () => {
         </div>
         <button onClick={createRoom}> Create Room</button>
         <button onClick={() => { auth.signOut() }}>Sign out</button>
-        <InfoCard />
+
       </div>
   )
 };
