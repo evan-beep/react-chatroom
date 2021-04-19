@@ -68,10 +68,7 @@ const SignIn = () => {
           <Link to="signUp">
             Sign up here
           </Link>{" "}
-          <br />{" "}
-          <Link to="passwordReset">
-            Forgot Password?
-          </Link>
+
         </p>
       </div>
     </div>

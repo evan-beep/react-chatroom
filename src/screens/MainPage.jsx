@@ -21,6 +21,7 @@ const MainPage = () => {
   const [message, setMessage] = useState('');
   const [roomName, setRoomName] = useState('');
   const [recRooms, setRecRooms] = useState([]);
+  const [loadMsgCount, setLoadMsgCount] = useState(20);
 
   const d = new Date()
 
@@ -162,6 +163,7 @@ const MainPage = () => {
     document.getElementById('textBox').innerHTML = '';
     setMessage('');
     setRoomID('');
+    setLoadMsgCount(20);
     setChat(false);
   }
 
@@ -294,6 +296,7 @@ const MainPage = () => {
   return (
     chat ?
       <div className="base">
+        <InfoCard />
         <div className='textBoxTitle'>
           <img src={backIcon} className='textBoxTitleButton pseudoButton' alt="back" onClick={leaveRoom} />
           <div className='textBoxTitleText'>{roomName}</div>
@@ -320,7 +323,7 @@ const MainPage = () => {
       :
       <div className="base">
         <InfoCard />
-        <h2>Recent Rooms <img className="bellIMG" onClick={handleNotiPermission} src={bell} alt="notifications" /></h2>
+        <h2 style={{ display: 'flex' }}>Recent Rooms <img className="enterButton" onClick={handleNotiPermission} src={bell} alt="notifications" /></h2>
         <div className="recentBox">
           {recRooms[0]
             ? recRooms.map((i, index) => {
