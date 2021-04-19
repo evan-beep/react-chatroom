@@ -7,6 +7,11 @@ import icon from '../images/person.png';
 import backIcon from '../images/backArrow.png'
 import copy from '../images/copy.png'
 import bell from '../images/bell.png'
+import enter from '../images/enter.png'
+import newRoom from '../images/newRoom.png'
+import logout from '../images/logout.png'
+import send from '../images/send.png'
+
 
 const MainPage = () => {
   const user = useContext(UserContext);
@@ -176,6 +181,9 @@ const MainPage = () => {
         <img className="profIMG pseudoButton" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
         <h2>{displayName} <button className="pseudoButton" onClick={changeName()}>Edit</button></h2>
         <h3>{email}</h3>
+
+        <img className="enterButton pseudoButton" src={logout} alt="Logout" onClick={() => { auth.signOut() }} />
+
       </div>
     )
   }
@@ -278,7 +286,9 @@ const MainPage = () => {
 
   function handleNotiPermission() {
     Promise.resolve(Notification.requestPermission()).then(function (permission) {
-      console.log(permission);
+      if (permission === 'granted') {
+        alert("You already have notifications on");
+      }
     });
   }
   return (
@@ -302,7 +312,7 @@ const MainPage = () => {
             className="inputBar"
             onChange={(event) => setMessage(event.currentTarget.value)}
           />
-          <button onClick={sendMessage} className="inputButton pseudoButton">Send</button>
+          <img src={send} alt="Send" onClick={sendMessage} className="enterButton pseudoButton" />
         </div>
 
 
@@ -319,18 +329,18 @@ const MainPage = () => {
             : <p>You have no recent rooms</p>
           }
         </div>
-        <div className="">
+        <div className="inputContainer">
+          <img className="enterButton pseudoButton" src={newRoom} alt="New room" onClick={createRoom} />
           <input
             type="string"
             value={roomID}
             placeholder="Enter Room ID"
             id="roomID"
+            className="roomIDInput"
             onChange={(event) => setRoomID(event.currentTarget.value)}
           />
-          <button onClick={enterRoom}>Enter Room</button>
+          <img className="enterButton pseudoButton" src={enter} alt="Enter room" onClick={enterRoom} />
         </div>
-        <button onClick={createRoom}> Create Room</button>
-        <button onClick={() => { auth.signOut() }}>Sign out</button>
 
       </div>
   )
