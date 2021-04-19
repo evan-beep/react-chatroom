@@ -3,7 +3,9 @@ import { UserContext } from "../providers/UserProvider";
 import firebase, { auth, firestore } from "../firebase";
 import '../styles/index.sass'
 import ReactDOMServer from 'react-dom/server';
-import icon from '../person.png';
+import icon from '../images/person.png';
+import backIcon from '../images/backArrow.png'
+import copy from '../images/copy.png'
 
 const MainPage = () => {
   const user = useContext(UserContext);
@@ -48,8 +50,8 @@ const MainPage = () => {
     return auth.currentUser.photoURL;
   }
 
-  function sendMessage() {
-    firestore.collection('chatrooms').doc(roomID).collection('messages').add({
+  async function sendMessage() {
+    await firestore.collection('chatrooms').doc(roomID).collection('messages').add({
       name: getUserName(),
       text: message,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -98,6 +100,10 @@ const MainPage = () => {
   }
 
   function enterRoom() {
+    if (roomID === '') {
+      alert("Please enter room ID");
+      return;
+    }
     updateChat(roomID);
     setChat(true);
   }
@@ -141,17 +147,29 @@ const MainPage = () => {
 
   async function copyRoomID() {
     await navigator.clipboard.writeText(roomID);
+    document.getElementById('copyTXT').innerHTML = "(Copied to Clipboard)";
+  }
+
+  function InfoCard() {
+    return (
+      <div className="infoCard">
+        <h1>Your Profile</h1>
+        <img className="profIMG pseudoButton" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
+        <h2>{displayName} <button className="pseudoButton" onClick={changeName()}>Edit</button></h2>
+        <h3>{email}</h3>
+      </div>
+    )
   }
 
   return (
     chat ?
       <div className="base">
         <div className='textBoxTitle'>
-          <button className='textBoxTitleButton' onClick={leaveRoom}>Leave Room</button>
+          <img src={backIcon} className='textBoxTitleButton pseudoButton' alt="back" onClick={leaveRoom} />
           <div className='textBoxTitleText'>{roomName}</div>
           {navigator.clipboard
-            ? <button className="copyButton" onClick={copyRoomID}>Copy room ID</button>
-            : <div ></div>}
+            ? <img src={copy} className="textBoxTitleButton pseudoButton" alt="copyID" onClick={copyRoomID}></img>
+            : <div ></div>} <div id="copyTXT" className="titleCopyText">(Copy Room ID to share!)</div>
         </div>
         <div className="textBox" id="textBox">
 
@@ -165,16 +183,13 @@ const MainPage = () => {
             className="inputBar"
             onChange={(event) => setMessage(event.currentTarget.value)}
           />
-          <button onClick={sendMessage} className="inputButton">Send</button>
+          <button onClick={sendMessage} className="inputButton pseudoButton">Send</button>
         </div>
 
 
       </div>
       : <div className="base">
-        <div>
-          <h2>{displayName} <button onClick={changeName()}>Edit</button></h2>
-          <h3>{email}</h3>
-        </div>
+
         <div className="">
           <input
             type="string"
@@ -187,8 +202,9 @@ const MainPage = () => {
         </div>
         <button onClick={createRoom}> Create Room</button>
         <button onClick={() => { auth.signOut() }}>Sign out</button>
-
+        <InfoCard />
       </div>
   )
 };
 export default MainPage;
+
