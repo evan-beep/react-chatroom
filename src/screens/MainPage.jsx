@@ -11,6 +11,7 @@ import enter from '../images/enter.png'
 import newRoom from '../images/newRoom.png'
 import logout from '../images/logout.png'
 import send from '../images/send.png'
+import edit from '../images/edit.png'
 
 
 const MainPage = () => {
@@ -21,7 +22,6 @@ const MainPage = () => {
   const [message, setMessage] = useState('');
   const [roomName, setRoomName] = useState('');
   const [recRooms, setRecRooms] = useState([]);
-  const [loadMsgCount, setLoadMsgCount] = useState(20);
 
   const d = new Date()
 
@@ -163,12 +163,7 @@ const MainPage = () => {
     document.getElementById('textBox').innerHTML = '';
     setMessage('');
     setRoomID('');
-    setLoadMsgCount(20);
     setChat(false);
-  }
-
-  function changeName() {
-
   }
 
   async function copyRoomID() {
@@ -176,12 +171,34 @@ const MainPage = () => {
     document.getElementById('copyTXT').innerHTML = "(Copied to Clipboard)";
   }
 
+  function newProfPic() {
+    var p = prompt("Enter link for new profile picture: ");
+    if (p !== null) {
+      auth.currentUser.updateProfile({
+        photoURL: p
+      }).then(
+        alert("Reload for the change to take effect!")
+      )
+    }
+  }
+
+  function newName() {
+    var p = prompt("Enter new display name: ");
+    if (p !== null) {
+      auth.currentUser.updateProfile({
+        displayName: p
+      }).then(
+        alert("Reload for the change to take effect!")
+      )
+    }
+  }
+
   function InfoCard() {
     return (
       <div className="infoCard">
         <h1>Your Profile</h1>
-        <img className="profIMG pseudoButton" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
-        <h2>{displayName} <button className="pseudoButton" onClick={changeName()}>Edit</button></h2>
+        <img onClick={newProfPic} className="profIMG pseudoButton" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
+        <h2 style={{ display: 'flex' }}>{displayName}<img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
         <h3>{email}</h3>
 
         <img className="enterButton pseudoButton" src={logout} alt="Logout" onClick={() => { auth.signOut() }} />
@@ -329,7 +346,7 @@ const MainPage = () => {
             ? recRooms.map((i, index) => {
               return RecRoomBox(recRooms[recRooms.length - index - 1], index)
             })
-            : <p>You have no recent rooms</p>
+            : <p className="norec" >You have no recent rooms</p>
           }
         </div>
         <div className="inputContainer">
