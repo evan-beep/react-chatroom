@@ -207,6 +207,24 @@ const MainPage = () => {
     )
   }
 
+  function InfoMenu() {
+    return (
+      <div className="infoMenu">
+        <div className="menuComp">
+          <h2 style={{ display: 'flex' }}>{displayName}<img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
+
+        </div>
+        <div className="menuComp">
+          {email}
+        </div>
+        <div className="menuComp">
+          <img className="enterButton pseudoButton" src={logout} alt="Logout" onClick={() => { auth.signOut() }} />
+
+        </div>
+      </div>
+    )
+  }
+
   function setRecentRooms() {
     let obj = database.ref().child('users').child(auth.currentUser.uid)
     obj.get().then(
@@ -303,6 +321,7 @@ const MainPage = () => {
     getRecentRooms();
   }, [])
 
+
   function handleNotiPermission() {
     Promise.resolve(Notification.requestPermission()).then(function (permission) {
       if (permission === 'granted') {
@@ -314,6 +333,7 @@ const MainPage = () => {
     chat ?
       <div className="base">
         <InfoCard />
+        <InfoMenu />
         <div className='textBoxTitle'>
           <img src={backIcon} className='textBoxTitleButton pseudoButton' alt="back" onClick={leaveRoom} />
           <div className='textBoxTitleText'>{roomName}</div>
@@ -340,6 +360,8 @@ const MainPage = () => {
       :
       <div className="base">
         <InfoCard />
+        <InfoMenu />
+
         <h2 style={{ display: 'flex' }}>Recent Rooms <img className="enterButton" onClick={handleNotiPermission} src={bell} alt="notifications" /></h2>
         <div className="recentBox">
           {recRooms[0]

@@ -82,6 +82,7 @@ html, body, #root
   display: flex
   flex-direction: row
   justify-content: flex-start
+  margin-bottom: 10px
   width: 90%
 .textBoxTitleText
   font-size: 30px
@@ -115,7 +116,16 @@ a
   padding: 10px
   min-height: 350px
   @media screen and (max-width: $medium)
-    position: sticky
+    display: none
+.infoMenu
+  display: flex
+  position: absolute
+  top: 10px
+  background-color: #535353
+  padding: 10px
+  margin: 10px
+  @media screen and (min-width: $medium)
+    display: none
 .profIMG
   width: 100px
   height: 100px
@@ -182,3 +192,12 @@ button
   border-radius: 3px
 .norec
   text-align: center
+
+.menuComp
+  height: 30px
+  align-items: center
+  justify-content: center
+  display: flex
+  text-align: center
+  white-space: nowrap
+  overflow: hidden
