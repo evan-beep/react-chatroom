@@ -26,8 +26,8 @@ const MainPage = () => {
   const d = new Date()
 
   const updateChat = (rID) => {
-
-    let roomHistory = firestore.collection("chatrooms").doc(rID).collection('messages').orderBy('timestamp');
+    let roomRef = firestore.collection("chatrooms").doc(rID);
+    let roomHistory = roomRef.collection('messages').orderBy('timestamp');
     let unsubscribe = roomHistory.onSnapshot(function (snapshot) {
       snapshot.docChanges().forEach(function (change) {
         var message = change.doc.data();
@@ -118,9 +118,22 @@ const MainPage = () => {
       alert("Please enter room ID");
       return;
     }
-    updateChat(roomID);
-    setRecentRooms();
-    setChat(true);
+    firestore.collection("chatrooms").doc(roomID).get().then((doc) => {
+      if (typeof doc.data() !== 'undefined') {
+        updateChat(roomID);
+        setRecentRooms();
+        setChat(true);
+      } else {
+        alert('This room does not exist!');
+        setRoomID('');
+        return;
+      }
+    }
+    ).catch((err) => {
+      alert("Something went wrong uwu");
+      return;
+    })
+
   }
 
   function cheapEnterRoom(id) {
@@ -230,7 +243,6 @@ const MainPage = () => {
     obj.get().then(
       (ss) => {
         if (ss.val() !== null) {
-          console.log(ss.val());
 
           let idss = ss.val().ids;
           for (var i = idss.length - 1; i >= 0; i--) {
