@@ -12,7 +12,7 @@ import newRoom from '../images/newRoom.png'
 import logout from '../images/logout.png'
 import send from '../images/send.png'
 import edit from '../images/edit.png'
-
+import img from '../images/image.png'
 
 const MainPage = () => {
   const user = useContext(UserContext);
@@ -341,6 +341,23 @@ const MainPage = () => {
       }
     });
   }
+
+  function sendPicture() {
+    var img_btn = document.getElementById('sendPicButton');
+    var storageRef = firebase.storage().ref();
+    var file = img_btn.files[0]
+    console.log(img_btn.value);
+    let fname = img_btn.value.split("C:\\fakepath\\").pop();
+    let imgRef = storageRef.child('images/' + fname);
+    imgRef.put(file).then((sp) => {
+      imgRef.getDownloadURL().then(
+        (imgURL) => {
+
+        }
+      )
+    });
+  }
+
   return (
     chat ?
       <div className="base">
@@ -356,6 +373,8 @@ const MainPage = () => {
         <div className="textBox" id="textBox">
         </div>
         <div className="inputZone">
+          <img src={img} alt="img" id='sendPicButton' onClick={sendPicture} className="enterButton pseudoButton" />
+
           <input
             type="string"
             value={message}
