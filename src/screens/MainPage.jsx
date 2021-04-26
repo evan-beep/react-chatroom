@@ -25,6 +25,7 @@ const MainPage = () => {
 
   const d = new Date()
 
+
   const updateChat = (rID) => {
     let roomRef = firestore.collection("chatrooms").doc(rID);
     let roomHistory = roomRef.collection('messages').orderBy('timestamp');
@@ -215,14 +216,22 @@ const MainPage = () => {
   }
 
   function newProfPic() {
-    var p = prompt("Enter link for new profile picture: ");
-    if (p !== null) {
-      auth.currentUser.updateProfile({
-        photoURL: p
-      }).then(
-        alert("Reload for the change to take effect!")
-      )
-    }
+    var profPic_bin = document.getElementById('uploadPicButton');
+    var storageRef = firebase.storage().ref();
+    var file = profPic_bin.files[0]
+    console.log(profPic_bin.value);
+    let fname = profPic_bin.value.split("C:\\fakepath\\").pop();
+
+    let imgRef = storageRef.child('profileIMGs/' + fname + auth.currentUser.uid);
+    imgRef.put(file).then((sp) => {
+      imgRef.getDownloadURL().then(
+        (imgURL) => {
+          auth.currentUser.updateProfile({
+            photoURL: imgURL
+          }).then(document.getElementById('profIMG').src = imgURL)
+        }
+      ).then(console.log('done'))
+    })
   }
 
   function newName() {
@@ -231,7 +240,6 @@ const MainPage = () => {
       auth.currentUser.updateProfile({
         displayName: p
       }).then(
-        alert("Reload for the change to take effect!")
       )
     }
   }
@@ -240,8 +248,12 @@ const MainPage = () => {
     return (
       <div className="infoCard">
         <h1>Your Profile</h1>
-        <img onClick={newProfPic} className="profIMG pseudoButton" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
-        <h2 style={{ display: 'flex' }}>{displayName}<img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
+        <label className="profIMG">
+          <img id="profIMG" className="profIMG" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
+          <input type="file" style={{ display: 'none' }} id="uploadPicButton" onChange={newProfPic} />
+        </label>
+        <h2 style={{ display: 'flex' }}>{displayName}
+          <img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
         <h3>{email}</h3>
 
         <img className="enterButton pseudoButton" src={logout} alt="Logout" onClick={() => { auth.signOut() }} />
