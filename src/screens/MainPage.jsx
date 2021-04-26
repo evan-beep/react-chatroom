@@ -79,8 +79,38 @@ const MainPage = () => {
 
   function displayMessage(m) {
     let s = document.createElement('div');
-    s.innerHTML = ReactDOMServer.renderToString(buildMsgBox(m));
+    s.innerHTML = ReactDOMServer.renderToString(m.image ? buildImageMsgBox(m) : buildMsgBox(m));
     document.getElementById('textBox').appendChild(s);
+  }
+
+  function buildImageMsgBox(item) {
+    return (
+      item.id === getUserEmail() ?
+        <div className="msgBox" style={{ justifyContent: 'flex-end' }}>
+
+
+          <div className="msgText">
+            <div className="profileName">{item.name}</div>
+            <img src={item.image} alt="user_image" className="usrimg" />
+          </div>
+          <div className="profilePic">
+            <img src={item.ImgSrc ? item.ImgSrc : icon} alt={item.name + "profpic"} className="profPic" />
+          </div>
+
+        </div>
+        :
+        <div className="msgBox" >
+
+          <div className="profilePic">
+            <img src={item.ImgSrc ? item.ImgSrc : icon} alt={item.name + "profpic"} className="profPic" />
+          </div>
+          <div className="msgText">
+            <div className="profileName">{item.name}</div>
+            <img src={item.image} alt="user_image" className="usrimg" />
+          </div>
+
+        </div>
+    )
   }
 
   function buildMsgBox(item) {
@@ -352,7 +382,14 @@ const MainPage = () => {
     imgRef.put(file).then((sp) => {
       imgRef.getDownloadURL().then(
         (imgURL) => {
-
+          firestore.collection('chatrooms').doc(roomID).collection('messages').add({
+            name: getUserName(),
+            image: imgURL,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            id: getUserEmail(),
+            ImgSrc: getUserProfileImg()
+          }
+          ).then(console.log('done'))
         }
       )
     });
@@ -373,7 +410,11 @@ const MainPage = () => {
         <div className="textBox" id="textBox">
         </div>
         <div className="inputZone">
-          <img src={img} alt="img" id='sendPicButton' onClick={sendPicture} className="enterButton pseudoButton" />
+          <label className="inputIMGLabel" style={{ marginRight: '10px' }}>
+            <input type="file" id='sendPicButton' onChange={sendPicture} />
+            <img src={img} alt="img_button" style={{ width: '30px', height: '30px' }} />
+          </label>
+
 
           <input
             type="string"
