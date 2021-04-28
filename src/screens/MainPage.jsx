@@ -17,6 +17,7 @@ import img from '../images/image.png'
 const MainPage = () => {
   const user = useContext(UserContext);
   const { displayName, email } = user;
+  const [renderName, setRenderName] = useState(displayName);
   const [chat, setChat] = useState(false);
   const [roomID, setRoomID] = useState('');
   const [message, setMessage] = useState('');
@@ -36,10 +37,6 @@ const MainPage = () => {
           displayMessage(message);
           var objDiv = document.getElementById("textBox");
           objDiv.scrollTop = objDiv.scrollHeight;
-          if (message.timestamp.seconds > d.getTime() / 1000 && message.name !== getUserName()) {
-            let n = new Notification(message.name + ": " + message.text);
-          }
-
         }
         if (message.timestamp === null && message.text === 'exit') {
           unsubscribe();
@@ -240,6 +237,7 @@ const MainPage = () => {
       auth.currentUser.updateProfile({
         displayName: p
       }).then(
+        setRenderName(p)
       )
     }
   }
@@ -252,7 +250,7 @@ const MainPage = () => {
           <img id="profIMG" className="profIMG" src={auth.currentUser.photoURL ? auth.currentUser.photoURL : icon} alt="user profile" />
           <input type="file" style={{ display: 'none' }} id="uploadPicButton" onChange={newProfPic} />
         </label>
-        <h2 style={{ display: 'flex' }}>{displayName}
+        <h2 style={{ display: 'flex' }}>{renderName}
           <img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
         <h3>{email}</h3>
 
@@ -266,7 +264,7 @@ const MainPage = () => {
     return (
       <div className="infoMenu">
         <div className="menuComp">
-          <h2 style={{ display: 'flex' }}>{displayName}<img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
+          <h2 style={{ display: 'flex' }}>{renderName}<img style={{ width: '20px', height: '20px', margin: '3px', padding: 0 }} className="pseudoButton" src={edit} alt="newname" onClick={newName} /></h2>
 
         </div>
         <div className="menuComp">
@@ -318,8 +316,6 @@ const MainPage = () => {
     obj.get().then(
       (ss) => {
         if (ss.val() !== null) {
-          console.log(ss.val());
-
           let idss = ss.val().ids;
           for (var i = idss.length - 1; i >= 0; i--) {
             if (idss[i] === id) {
@@ -371,9 +367,31 @@ const MainPage = () => {
     )
   }
 
+
+
   useEffect(() => {
-    getRecentRooms();
+    getRecentRooms()
   }, [])
+
+  useEffect(() => {
+    recRooms.forEach(i => {
+      addNotiListener(i);
+    })
+  }, [recRooms])
+
+  const addNotiListener = (rID) => {
+    firestore.collection("chatrooms").doc(rID).collection('messages').onSnapshot(function (snapshot) {
+      snapshot.docChanges().forEach(function (change) {
+        var message = change.doc.data();
+        if (message.timestamp !== null && message.timestamp) {
+          if (message.timestamp.seconds > d.getTime() / 1000 && message.name !== getUserName()) {
+            let n = new Notification(message.name + ": " + message.text);
+          }
+
+        }
+      });
+    })
+  }
 
 
   function handleNotiPermission() {
