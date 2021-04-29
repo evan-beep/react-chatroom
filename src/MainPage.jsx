@@ -416,7 +416,7 @@ const MainPage = () => {
       snapshot.docChanges().forEach(function (change) {
         var message = change.doc.data();
         if (message.timestamp !== null && message.timestamp) {
-          if (message.timestamp.seconds > d.getTime() / 1000 && message.name !== getUserName()) {
+          if (message.timestamp.seconds > d.getTime() / 1000 && message.id !== auth().currentUser.uid) {
             let n = new Notification(message.name + ": " + message.text);
           }
         }
