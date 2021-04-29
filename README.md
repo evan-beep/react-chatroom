@@ -47,5 +47,5 @@ Basic chat with signup and image uploads
 4. Copy Room ID to invite
 
 # Other
-I only included src files and readme in the zip upload, because the entire project is too large
+I only included src files and readme in the zip upload, because the entire project is too large. See entire project at [github](https://github.com/evan-beep/react-chatroom)
 
