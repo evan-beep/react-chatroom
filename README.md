@@ -46,4 +46,6 @@ Basic chat with signup and image uploads
 3. Recent Rooms displayed in menu
 4. Copy Room ID to invite
 
+# Other
+I only included src files and readme in the zip upload, because the entire project is too large
 
