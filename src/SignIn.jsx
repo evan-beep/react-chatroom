@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "@reach/router";
-import { auth, signInWithGoogle } from '../firebase';
+import { auth, signInWithGoogle } from './firebase';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');

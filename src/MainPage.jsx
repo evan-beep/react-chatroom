@@ -1,18 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
-import { UserContext } from "../providers/UserProvider";
-import firebase, { auth, database, firestore } from "../firebase";
-import '../styles/index.sass'
+import { UserContext } from "./UserProvider";
+import firebase, { auth, database, firestore } from "./firebase";
+import './index.sass'
 import ReactDOMServer from 'react-dom/server';
-import icon from '../images/person.png';
-import backIcon from '../images/backArrow.png'
-import copy from '../images/copy.png'
-import bell from '../images/bell.png'
-import enter from '../images/enter.png'
-import newRoom from '../images/newRoom.png'
-import logout from '../images/logout.png'
-import send from '../images/send.png'
-import edit from '../images/edit.png'
-import img from '../images/image.png'
+import icon from './images/person.png';
+import backIcon from './images/backArrow.png'
+import copy from './images/copy.png'
+import bell from './images/bell.png'
+import enter from './images/enter.png'
+import newRoom from './images/newRoom.png'
+import logout from './images/logout.png'
+import send from './images/send.png'
+import edit from './images/edit.png'
+import img from './images/image.png'
 
 const MainPage = () => {
   const user = useContext(UserContext);
@@ -148,6 +148,16 @@ const MainPage = () => {
     }
     firestore.collection("chatrooms").doc(roomID).get().then((doc) => {
       if (typeof doc.data() !== 'undefined') {
+        recRooms.forEach(i => {
+          let space = firestore.collection('chatrooms').doc(i).collection('messages').doc(getUserEmail() + 'logout');
+          space.set({
+            name: getUserName(),
+            text: 'enter',
+            timestamp: null,
+            id: getUserEmail()
+          })
+          space.delete();
+        })
         updateChat(roomID);
         setRecentRooms();
         setChat(true);
@@ -169,9 +179,31 @@ const MainPage = () => {
       alert("Please enter room ID");
       return;
     }
-    updateChat(id);
-    cheapSetRecentRooms(id);
-    setChat(true);
+    firestore.collection("chatrooms").doc(id).get().then((doc) => {
+      if (typeof doc.data() !== 'undefined') {
+        recRooms.forEach(i => {
+          let space = firestore.collection('chatrooms').doc(i).collection('messages').doc(getUserEmail() + 'logout');
+          space.set({
+            name: getUserName(),
+            text: 'enter',
+            timestamp: null,
+            id: getUserEmail()
+          })
+          space.delete();
+        })
+        updateChat(id);
+        cheapSetRecentRooms(id);
+        setChat(true);
+      } else {
+        alert('This room does not exist!');
+        return;
+      }
+    }
+    ).catch((err) => {
+      alert("Something went wrong uwu");
+      return;
+    })
+
   }
 
   function createRoom() {
@@ -380,18 +412,22 @@ const MainPage = () => {
   }, [recRooms])
 
   const addNotiListener = (rID) => {
-    firestore.collection("chatrooms").doc(rID).collection('messages').onSnapshot(function (snapshot) {
+    let unsub = firestore.collection("chatrooms").doc(rID).collection('messages').onSnapshot(function (snapshot) {
       snapshot.docChanges().forEach(function (change) {
         var message = change.doc.data();
         if (message.timestamp !== null && message.timestamp) {
           if (message.timestamp.seconds > d.getTime() / 1000 && message.name !== getUserName()) {
             let n = new Notification(message.name + ": " + message.text);
           }
-
+        }
+        if (message.timestamp === null && message.text === 'enter') {
+          console.log('done');
+          unsub();
         }
       });
     })
   }
+
 
 
   function handleNotiPermission() {
@@ -417,7 +453,8 @@ const MainPage = () => {
             image: imgURL,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             id: getUserEmail(),
-            ImgSrc: getUserProfileImg()
+            ImgSrc: getUserProfileImg(),
+            text: ''
           }
           ).then(console.log('done'))
         }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "@reach/router";
-import { signInWithGoogle, auth } from '../firebase';
+import { signInWithGoogle, auth } from './firebase';
 
 function createUser(e, p, n) {
   auth.createUserWithEmailAndPassword(e, p).then(
